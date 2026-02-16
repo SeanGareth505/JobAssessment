@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -27,6 +28,7 @@ import type { ProductDto, CreateProductRequest } from '../../core/models/api.mod
   styleUrl: './create-product-dialog.component.scss',
 })
 export class CreateProductDialogComponent {
+  private readonly destroyRef = inject(DestroyRef);
   loading = false;
   error: string | null = null;
   form: FormGroup;
@@ -59,14 +61,17 @@ export class CreateProductDialogComponent {
 
     this.loading = true;
     this.error = null;
-    this.api.createProduct(request).subscribe({
-      next: (product) => {
-        this.dialogRef.close(product);
-      },
-      error: (err) => {
-        this.error = getApiErrorMessage(err, 'Failed to create product');
-        this.loading = false;
-      },
-    });
+    this.api
+      .createProduct(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (product) => {
+          this.dialogRef.close(product);
+        },
+        error: (err) => {
+          this.error = getApiErrorMessage(err, 'Failed to create product');
+          this.loading = false;
+        },
+      });
   }
 }

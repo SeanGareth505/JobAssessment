@@ -1,4 +1,5 @@
-import { Component, Inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -7,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../core/api.service';
 import { getApiErrorMessage } from '../../core/utils/api-error';
-import { ORDER_STATUS_LABELS } from '../../core/constants/sadc-countries';
+import { ORDER_STATUS_LABELS } from '../../core/constants/order-status';
 import type { CustomerDto, OrderDto } from '../../core/models/api.models';
 
 @Component({
@@ -24,6 +25,7 @@ import type { CustomerDto, OrderDto } from '../../core/models/api.models';
   styleUrl: './customer-orders-dialog.component.scss',
 })
 export class CustomerOrdersDialogComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   loading = signal(true);
   error = signal<string | null>(null);
   orders = signal<OrderDto[]>([]);
@@ -44,16 +46,19 @@ export class CustomerOrdersDialogComponent implements OnInit {
   loadOrders(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.getOrdersPage(this.data.id, null, 1, 100, '-createdAt').subscribe({
-      next: (res) => {
-        this.orders.set(res.items);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(getApiErrorMessage(err, 'Failed to load orders'));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .getOrdersPage(this.data.id, null, 1, 100, '-createdAt')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.orders.set(res.items);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(getApiErrorMessage(err, 'Failed to load orders'));
+          this.loading.set(false);
+        },
+      });
   }
 
   statusLabel(s: number): string {

@@ -5,14 +5,16 @@
   margin: 0 auto;
 }
 
-.toolbar-row {
+.toolbar-row.search-filter-row {
   display: flex;
   gap: v.$spacing-md;
   align-items: flex-start;
   margin-bottom: v.$spacing-xl;
+  flex-wrap: wrap;
 
-  mat-form-field {
+  .search-field {
     flex: 1;
+    min-width: 200px;
     max-width: 420px;
   }
 
@@ -89,7 +91,7 @@ mat-spinner {
 }
 
 @media (max-width: 768px) {
-  .toolbar-row {
+  .toolbar-row.search-filter-row {
     flex-direction: column;
     align-items: stretch;
     gap: v.$spacing-md;

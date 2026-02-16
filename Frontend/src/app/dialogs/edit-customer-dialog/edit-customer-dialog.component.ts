@@ -1,4 +1,5 @@
-import { Component, Inject } from '@angular/core';
+import { Component, DestroyRef, Inject, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -34,6 +35,7 @@ import type { CustomerDto, UpdateCustomerRequest } from '../../core/models/api.m
   styleUrl: './edit-customer-dialog.component.scss',
 })
 export class EditCustomerDialogComponent {
+  private readonly destroyRef = inject(DestroyRef);
   loading = false;
   error: string | null = null;
   form: FormGroup;
@@ -70,15 +72,18 @@ export class EditCustomerDialogComponent {
 
     this.loading = true;
     this.error = null;
-    this.api.updateCustomer(this.data.id, request).subscribe({
-      next: (customer) => {
-        this.loading = false;
-        this.dialogRef.close(customer);
-      },
-      error: (err) => {
-        this.error = getApiErrorMessage(err, 'Failed to update customer');
-        this.loading = false;
-      },
-    });
+    this.api
+      .updateCustomer(this.data.id, request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (customer) => {
+          this.loading = false;
+          this.dialogRef.close(customer);
+        },
+        error: (err) => {
+          this.error = getApiErrorMessage(err, 'Failed to update customer');
+          this.loading = false;
+        },
+      });
   }
 }

@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -39,6 +40,7 @@ export type ProductSortOption = 'sku-asc' | 'sku-desc' | 'created-desc' | 'creat
   styleUrl: './products-list.component.scss',
 })
 export class ProductsListComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   loading = signal(false);
   error = signal<string | null>(null);
   search = signal('');
@@ -75,9 +77,12 @@ export class ProductsListComponent implements OnInit {
       width: '420px',
       disableClose: false,
     });
-    ref.afterClosed().subscribe((result?: ProductDto) => {
-      if (result) this.loadPage();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: ProductDto) => {
+        if (result) this.loadPage();
+      });
   }
 
   ngOnInit(): void {
@@ -87,17 +92,20 @@ export class ProductsListComponent implements OnInit {
   loadPage(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.getProductsPage(this.search() || null, this.page(), this.pageSize()).subscribe({
-      next: (res) => {
-        this.rawItems.set(res.items);
-        this.totalCount.set(res.totalCount);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(getApiErrorMessage(err, 'Failed to load products'));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .getProductsPage(this.search() || null, this.page(), this.pageSize())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.rawItems.set(res.items);
+          this.totalCount.set(res.totalCount);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(getApiErrorMessage(err, 'Failed to load products'));
+          this.loading.set(false);
+        },
+      });
   }
 
   onSearch(): void {

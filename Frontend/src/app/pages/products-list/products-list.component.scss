@@ -5,7 +5,7 @@
   margin: 0 auto;
 }
 
-.toolbar-row {
+.toolbar-row.search-filter-row {
   display: flex;
   gap: v.$spacing-md;
   align-items: flex-start;
@@ -18,7 +18,7 @@
     max-width: 360px;
   }
 
-  .sort-field {
+  .sort-field.filter-field {
     width: 180px;
   }
 

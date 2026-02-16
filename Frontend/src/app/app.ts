@@ -18,6 +18,6 @@ import { AuthService } from './core/services/auth.service';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
+export class AppComponent {
   constructor(public auth: AuthService) {}
 }

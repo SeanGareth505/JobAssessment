@@ -1,4 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +19,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { getApiErrorMessage } from '../../core/utils/api-error';
-import { ORDER_STATUS_LABELS } from '../../core/constants/sadc-countries';
+import { ORDER_STATUS_LABELS } from '../../core/constants/order-status';
 import type { CustomerDto, OrderDto } from '../../core/models/api.models';
 import { CreateOrderDialogComponent } from '../../dialogs/create-order-dialog/create-order-dialog.component';
 import { EditOrderDialogComponent } from '../../dialogs/edit-order-dialog/edit-order-dialog.component';
@@ -46,8 +47,10 @@ import { EditOrderDialogComponent } from '../../dialogs/edit-order-dialog/edit-o
   styleUrl: './orders-list.component.scss',
 })
 export class OrdersListComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   loading = signal(false);
   error = signal<string | null>(null);
+  searchTerm = signal('');
   customerId = signal<string>('');
   status = signal<string>('');
   sort = signal('createdAt');
@@ -58,6 +61,18 @@ export class OrdersListComponent implements OnInit {
   customers = signal<CustomerDto[]>([]);
   updatingOrderId = signal<string | null>(null);
   selectedOrderForMenu = signal<OrderDto | null>(null);
+
+  /** Client-side filter of current page by customer name or order id */
+  filteredItems = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const list = this.items();
+    if (!term) return list;
+    return list.filter(
+      (o) =>
+        (o.customerName ?? '').toLowerCase().includes(term) ||
+        o.id.toLowerCase().includes(term),
+    );
+  });
 
   displayedColumns = [
     'createdAt',
@@ -84,13 +99,16 @@ export class OrdersListComponent implements OnInit {
       minHeight: '400px',
       disableClose: false,
     });
-    ref.afterClosed().subscribe((result?: OrderDto) => {
-      if (result) {
-        this.loadPage();
-        this.router.navigate(['/orders']);
-        this.snackBar.open('Order created', undefined, { duration: 3000 });
-      }
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: OrderDto) => {
+        if (result) {
+          this.loadPage();
+          this.router.navigate(['/orders']);
+          this.snackBar.open('Order created', undefined, { duration: 3000 });
+        }
+      });
   }
 
   canTransitionToPaid(row: OrderDto): boolean {
@@ -124,17 +142,20 @@ export class OrdersListComponent implements OnInit {
   updateStatus(order: OrderDto, newStatus: number): void {
     this.updatingOrderId.set(order.id);
     this.error.set(null);
-    this.api.updateOrderStatus(order.id, { status: newStatus }, crypto.randomUUID()).subscribe({
-      next: () => {
-        this.loadPage();
-        this.updatingOrderId.set(null);
-        this.snackBar.open('Status updated', undefined, { duration: 2000 });
-      },
-      error: (err) => {
-        this.error.set(getApiErrorMessage(err, 'Failed to update status'));
-        this.updatingOrderId.set(null);
-      },
-    });
+    this.api
+      .updateOrderStatus(order.id, { status: newStatus }, crypto.randomUUID())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadPage();
+          this.updatingOrderId.set(null);
+          this.snackBar.open('Status updated', undefined, { duration: 2000 });
+        },
+        error: (err) => {
+          this.error.set(getApiErrorMessage(err, 'Failed to update status'));
+          this.updatingOrderId.set(null);
+        },
+      });
   }
 
   openEditOrderDialog(order: OrderDto): void {
@@ -144,9 +165,12 @@ export class OrdersListComponent implements OnInit {
       disableClose: false,
       data: order,
     });
-    ref.afterClosed().subscribe((result?: OrderDto) => {
-      if (result) this.loadPage();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: OrderDto) => {
+        if (result) this.loadPage();
+      });
   }
 
   ngOnInit(): void {
@@ -155,10 +179,19 @@ export class OrdersListComponent implements OnInit {
   }
 
   loadCustomers(): void {
-    this.api.getCustomersPage(null, 1, 100).subscribe({
-      next: (res) => this.customers.set(res.items),
-      error: () => {},
-    });
+    this.api
+      .getCustomersPage(null, 1, 100)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => this.customers.set(res.items),
+        error: (err) => {
+          this.snackBar.open(
+            getApiErrorMessage(err, 'Failed to load customers for filter'),
+            undefined,
+            { duration: 4000 },
+          );
+        },
+      });
   }
 
   loadPage(): void {
@@ -172,6 +205,7 @@ export class OrdersListComponent implements OnInit {
         this.pageSize(),
         this.sort(),
       )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.items.set(res.items);

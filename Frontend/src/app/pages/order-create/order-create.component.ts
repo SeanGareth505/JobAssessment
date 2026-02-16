@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -54,6 +55,7 @@ import type {
   styleUrl: './order-create.component.scss',
 })
 export class OrderCreateComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   loading = false;
   error: string | null = null;
   customers: CustomerDto[] = [];
@@ -77,7 +79,7 @@ export class OrderCreateComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       customerId: ['', Validators.required],
-      currencyCode: ['', currencyCodeValidators()],
+      currencyCode: [{ value: '', disabled: true }, currencyCodeValidators()],
       lineItems: this.fb.array([]),
     });
   }
@@ -99,21 +101,38 @@ export class OrderCreateComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.getCustomersPage(null, 1, 500).subscribe({
-      next: (res) => (this.customers = res.items),
-      error: (err) => (this.error = getApiErrorMessage(err, 'Failed to load customers')),
-    });
-    this.api.getProductsPage(null, 1, 500).subscribe({
-      next: (res) => (this.catalogProducts = res.items),
-    });
-    this.form.get('customerId')?.valueChanges.subscribe(() => {
-      const cur = getAllowedCurrenciesForCountry(
-        this.customers.find((c) => c.id === this.form.get('customerId')?.value)?.countryCode ?? '',
-      );
-      if (cur.length > 0 && !cur.includes(this.form.get('currencyCode')?.value)) {
-        this.form.patchValue({ currencyCode: cur[0] }, { emitEvent: false });
-      }
-    });
+    this.api
+      .getCustomersPage(null, 1, 500)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => (this.customers = res.items),
+        error: (err) => (this.error = getApiErrorMessage(err, 'Failed to load customers')),
+      });
+    this.api
+      .getProductsPage(null, 1, 500)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => (this.catalogProducts = res.items),
+      });
+    this.form
+      .get('customerId')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const cid = this.form.get('customerId')?.value;
+        const currencyControl = this.form.get('currencyCode');
+        if (!cid) {
+          currencyControl?.disable({ emitEvent: false });
+          this.form.patchValue({ currencyCode: '' }, { emitEvent: false });
+        } else {
+          currencyControl?.enable({ emitEvent: false });
+          const cur = getAllowedCurrenciesForCountry(
+            this.customers.find((c) => c.id === cid)?.countryCode ?? '',
+          );
+          if (cur.length > 0 && !cur.includes(this.form.get('currencyCode')?.value)) {
+            this.form.patchValue({ currencyCode: cur[0] }, { emitEvent: false });
+          }
+        }
+      });
   }
 
   removeLine(i: number): void {
@@ -133,12 +152,15 @@ export class OrderCreateComponent implements OnInit {
       width: '420px',
       disableClose: false,
     });
-    ref.afterClosed().subscribe((result?: ProductDto) => {
-      if (result) {
-        this.catalogProducts = [...this.catalogProducts, result];
-        this.lineItems.push(this.createLineItemGroup(result.id, 1, 0));
-      }
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: ProductDto) => {
+        if (result) {
+          this.catalogProducts = [...this.catalogProducts, result];
+          this.lineItems.push(this.createLineItemGroup(result.id, 1, 0));
+        }
+      });
   }
 
   createOrder(): void {
@@ -171,16 +193,19 @@ export class OrderCreateComponent implements OnInit {
       lineItems,
     };
     this.loading = true;
-    this.api.createOrder(request).subscribe({
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['/orders']);
-        this.snackBar.open('Order created', undefined, { duration: 3000 });
-      },
-      error: (err) => {
-        this.error = getApiErrorMessage(err, 'Failed to create order');
-        this.loading = false;
-      },
-    });
+    this.api
+      .createOrder(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loading = false;
+          this.router.navigate(['/orders']);
+          this.snackBar.open('Order created', undefined, { duration: 3000 });
+        },
+        error: (err) => {
+          this.error = getApiErrorMessage(err, 'Failed to create order');
+          this.loading = false;
+        },
+      });
   }
 }

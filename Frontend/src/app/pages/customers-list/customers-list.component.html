@@ -1,12 +1,12 @@
 <mat-card class="page-card">
   <mat-card-header>
     <mat-card-title>Customers</mat-card-title>
-    <mat-card-subtitle>Search and manage SADC customers</mat-card-subtitle>
+    <mat-card-subtitle>Search & filter: find and manage SADC customers</mat-card-subtitle>
   </mat-card-header>
 
   <mat-card-content>
-    <div class="toolbar-row">
-      <mat-form-field appearance="outline">
+    <div class="toolbar-row search-filter-row" aria-label="Search and filter">
+      <mat-form-field appearance="outline" class="search-field">
         <mat-label>Search</mat-label>
         <input
           matInput
@@ -17,7 +17,7 @@
         />
       </mat-form-field>
       <div class="toolbar-actions">
-        <button mat-button (click)="onSearch()">Search</button>
+        <button mat-button (click)="onSearch()">Apply</button>
         @if (auth.hasWriteRole()) {
           <button mat-raised-button color="primary" (click)="openAddCustomerModal()">
             Add Customer

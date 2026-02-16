@@ -1,12 +1,21 @@
 <mat-card class="page-card">
   <mat-card-header>
     <mat-card-title>Orders</mat-card-title>
-    <mat-card-subtitle>Filter by customer and status; sort and paginate</mat-card-subtitle>
+    <mat-card-subtitle>Search & filter: by customer, status, sort and paginate</mat-card-subtitle>
   </mat-card-header>
 
   <mat-card-content>
-    <div class="toolbar-row">
-      <mat-form-field appearance="outline">
+    <div class="toolbar-row search-filter-row" aria-label="Search and filter">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          placeholder="Customer name or order ID"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="filter-field">
         <mat-label>Customer</mat-label>
         <mat-select [ngModel]="customerId()" (ngModelChange)="customerId.set($event)">
           <mat-option value="">All</mat-option>
@@ -15,7 +24,7 @@
           }
         </mat-select>
       </mat-form-field>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="filter-field">
         <mat-label>Status</mat-label>
         <mat-select [ngModel]="status()" (ngModelChange)="status.set($event)">
           <mat-option value="">All</mat-option>
@@ -25,7 +34,7 @@
           <mat-option value="3">Cancelled</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="filter-field">
         <mat-label>Sort</mat-label>
         <mat-select [ngModel]="sort()" (ngModelChange)="sort.set($event)">
           <mat-option value="createdAt">Created (newest)</mat-option>
@@ -49,7 +58,7 @@
       <mat-spinner diameter="32"></mat-spinner>
     } @else {
       <div class="table-wrapper">
-        <table mat-table [dataSource]="items()" class="data-table mat-elevation-z0">
+        <table mat-table [dataSource]="filteredItems()" class="data-table mat-elevation-z0">
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>Created</th>
             <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'short' }}</td>

@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -13,7 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { getApiErrorMessage } from '../../core/utils/api-error';
-import { ORDER_STATUS_LABELS } from '../../core/constants/sadc-countries';
+import { ORDER_STATUS_LABELS } from '../../core/constants/order-status';
 import { EditOrderDialogComponent } from '../../dialogs/edit-order-dialog/edit-order-dialog.component';
 import type { OrderDto } from '../../core/models/api.models';
 
@@ -36,6 +37,7 @@ import type { OrderDto } from '../../core/models/api.models';
   styleUrl: './order-detail.component.scss',
 })
 export class OrderDetailComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   order = signal<OrderDto | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
@@ -82,16 +84,19 @@ export class OrderDetailComponent implements OnInit {
   loadOrder(id: string): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.getOrderById(id).subscribe({
-      next: (o) => {
-        this.order.set(o);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(getApiErrorMessage(err, 'Failed to load order'));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .getOrderById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (o) => {
+          this.order.set(o);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(getApiErrorMessage(err, 'Failed to load order'));
+          this.loading.set(false);
+        },
+      });
   }
 
   statusLabel(s: number): string {
@@ -106,12 +111,15 @@ export class OrderDetailComponent implements OnInit {
       disableClose: false,
       data: o,
     });
-    ref.afterClosed().subscribe((result?: OrderDto) => {
-      if (result) {
-        this.order.set(result);
-        this.error.set(null);
-      }
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: OrderDto) => {
+        if (result) {
+          this.order.set(result);
+          this.error.set(null);
+        }
+      });
   }
 
   transitionTo(status: number): void {
@@ -120,15 +128,18 @@ export class OrderDetailComponent implements OnInit {
     this.updating.set(true);
     this.error.set(null);
     const idempotencyKey = crypto.randomUUID();
-    this.api.updateOrderStatus(o.id, { status }, idempotencyKey).subscribe({
-      next: (updated) => {
-        this.order.set(updated);
-        this.updating.set(false);
-      },
-      error: (err) => {
-        this.error.set(getApiErrorMessage(err, 'Failed to update status'));
-        this.updating.set(false);
-      },
-    });
+    this.api
+      .updateOrderStatus(o.id, { status }, idempotencyKey)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => {
+          this.order.set(updated);
+          this.updating.set(false);
+        },
+        error: (err) => {
+          this.error.set(getApiErrorMessage(err, 'Failed to update status'));
+          this.updating.set(false);
+        },
+      });
   }
 }

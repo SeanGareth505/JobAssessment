@@ -1,12 +1,10 @@
 <mat-card class="page-card">
   <mat-card-header>
     <mat-card-title>Item catalog</mat-card-title>
-    <mat-card-subtitle
-      >Products you can add to orders. Search, sort, and manage items.</mat-card-subtitle
-    >
+    <mat-card-subtitle>Search & filter: find products by SKU or name, sort and manage items.</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <div class="toolbar-row">
+    <div class="toolbar-row search-filter-row" aria-label="Search and filter">
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Search</mat-label>
         <input
@@ -17,7 +15,7 @@
           placeholder="SKU or name"
         />
       </mat-form-field>
-      <mat-form-field appearance="outline" class="sort-field">
+      <mat-form-field appearance="outline" class="sort-field filter-field">
         <mat-label>Sort by</mat-label>
         <mat-select [ngModel]="sortOption()" (ngModelChange)="onSortChange($event)">
           <mat-option value="sku-asc">SKU (A–Z)</mat-option>
@@ -27,7 +25,7 @@
         </mat-select>
       </mat-form-field>
       <div class="toolbar-actions">
-        <button mat-button (click)="onSearch()">Search</button>
+        <button mat-button (click)="onSearch()">Apply</button>
         @if (auth.hasWriteRole()) {
           <button mat-raised-button color="primary" (click)="openCreateProductModal()">
             Add item

@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, DestroyRef, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -52,6 +53,7 @@ import { CreateProductDialogComponent } from '../create-product-dialog/create-pr
   styleUrl: './create-order-dialog.component.scss',
 })
 export class CreateOrderDialogComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   loading = false;
   error: string | null = null;
   customers: CustomerDto[] = [];
@@ -78,7 +80,7 @@ export class CreateOrderDialogComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       customerId: ['', Validators.required],
-      currencyCode: ['', currencyCodeValidators()],
+      currencyCode: [{ value: '', disabled: true }, currencyCodeValidators()],
       lineItems: this.fb.array([this.createLineItemGroup('', 1, 0)]),
     });
   }
@@ -96,34 +98,51 @@ export class CreateOrderDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.getCustomersPage(null, 1, 500).subscribe({
-      next: (res) => {
-        setTimeout(() => {
-          this.customers = res.items;
-          this.cdr.detectChanges();
-        }, 0);
-      },
-      error: (err) => {
-        setTimeout(() => {
-          this.error = getApiErrorMessage(err, 'Failed to load customers');
-          this.cdr.detectChanges();
-        }, 0);
-      },
-    });
-    this.api.getProductsPage(null, 1, 500).subscribe({
-      next: (res) => {
-        setTimeout(() => {
-          this.catalogProducts = res.items;
-          this.cdr.detectChanges();
-        }, 0);
-      },
-    });
-    this.form.get('customerId')?.valueChanges.subscribe(() => {
-      const cur = this.allowedCurrencies;
-      if (cur.length > 0 && !cur.includes(this.form.get('currencyCode')?.value)) {
-        this.form.patchValue({ currencyCode: cur[0] }, { emitEvent: false });
-      }
-    });
+    this.api
+      .getCustomersPage(null, 1, 500)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          setTimeout(() => {
+            this.customers = res.items;
+            this.cdr.detectChanges();
+          }, 0);
+        },
+        error: (err) => {
+          setTimeout(() => {
+            this.error = getApiErrorMessage(err, 'Failed to load customers');
+            this.cdr.detectChanges();
+          }, 0);
+        },
+      });
+    this.api
+      .getProductsPage(null, 1, 500)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          setTimeout(() => {
+            this.catalogProducts = res.items;
+            this.cdr.detectChanges();
+          }, 0);
+        },
+      });
+    this.form
+      .get('customerId')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const cid = this.form.get('customerId')?.value;
+        const currencyControl = this.form.get('currencyCode');
+        if (!cid) {
+          currencyControl?.disable({ emitEvent: false });
+          this.form.patchValue({ currencyCode: '' }, { emitEvent: false });
+        } else {
+          currencyControl?.enable({ emitEvent: false });
+          const cur = this.allowedCurrencies;
+          if (cur.length > 0 && !cur.includes(this.form.get('currencyCode')?.value)) {
+            this.form.patchValue({ currencyCode: cur[0] }, { emitEvent: false });
+          }
+        }
+      });
   }
 
   addLine(): void {
@@ -140,16 +159,19 @@ export class CreateOrderDialogComponent implements OnInit {
       width: '420px',
       disableClose: false,
     });
-    ref.afterClosed().subscribe((result?: ProductDto) => {
-      if (result) {
-        const product = result;
-        setTimeout(() => {
-          this.catalogProducts = [...this.catalogProducts, product];
-          this.lineItems.push(this.createLineItemGroup(product.id, 1, 0));
-          this.cdr.detectChanges();
-        }, 0);
-      }
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: ProductDto) => {
+        if (result) {
+          const product = result;
+          setTimeout(() => {
+            this.catalogProducts = [...this.catalogProducts, product];
+            this.lineItems.push(this.createLineItemGroup(product.id, 1, 0));
+            this.cdr.detectChanges();
+          }, 0);
+        }
+      });
   }
 
   createOrder(): void {
@@ -179,16 +201,19 @@ export class CreateOrderDialogComponent implements OnInit {
       lineItems,
     };
     this.loading = true;
-    this.api.createOrder(request).subscribe({
-      next: (order) => {
-        this.loading = false;
-        this.dialogRef.close(order);
-      },
-      error: (err) => {
-        this.error = getApiErrorMessage(err, 'Failed to create order');
-        this.loading = false;
-      },
-    });
+    this.api
+      .createOrder(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (order) => {
+          this.loading = false;
+          this.dialogRef.close(order);
+        },
+        error: (err) => {
+          this.error = getApiErrorMessage(err, 'Failed to create order');
+          this.loading = false;
+        },
+      });
   }
 
   cancel(): void {

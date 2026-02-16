@@ -4,7 +4,6 @@ export interface CustomerDto {
   email: string;
   countryCode: string;
   createdAt: string;
-  /** Set when returned from the customers list endpoint. */
   orderCount?: number;
 }
 
@@ -30,7 +29,7 @@ export interface OrderLineItemDto {
 export interface OrderDto {
   id: string;
   customerId: string;
-  status: number;
+  status: OrderStatusDto;
   createdAt: string;
   currencyCode: string;
   totalAmount: number;

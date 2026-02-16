@@ -1,4 +1,5 @@
-import { Component, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -36,6 +37,7 @@ import type {
   styleUrl: './edit-order-dialog.component.scss',
 })
 export class EditOrderDialogComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   loading = false;
   error: string | null = null;
   form: FormGroup;
@@ -56,14 +58,17 @@ export class EditOrderDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.getProductsPage(null, 1, 500).subscribe({
-      next: (res) => {
-        setTimeout(() => {
-          this.catalogProducts = res.items;
-          this.cdr.detectChanges();
-        }, 0);
-      },
-    });
+    this.api
+      .getProductsPage(null, 1, 500)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          setTimeout(() => {
+            this.catalogProducts = res.items;
+            this.cdr.detectChanges();
+          }, 0);
+        },
+      });
   }
 
   private buildForm(): FormGroup {
@@ -135,15 +140,18 @@ export class EditOrderDialogComponent implements OnInit {
     const request: UpdateOrderRequest = { lineItems };
     this.loading = true;
     this.error = null;
-    this.api.updateOrder(this.data.id, request).subscribe({
-      next: (order) => {
-        this.loading = false;
-        this.dialogRef.close(order);
-      },
-      error: (err) => {
-        this.error = getApiErrorMessage(err, 'Failed to update order');
-        this.loading = false;
-      },
-    });
+    this.api
+      .updateOrder(this.data.id, request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (order) => {
+          this.loading = false;
+          this.dialogRef.close(order);
+        },
+        error: (err) => {
+          this.error = getApiErrorMessage(err, 'Failed to update order');
+          this.loading = false;
+        },
+      });
   }
 }

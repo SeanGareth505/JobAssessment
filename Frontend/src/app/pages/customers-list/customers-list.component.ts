@@ -1,4 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -39,6 +40,7 @@ import { EditCustomerDialogComponent } from '../../dialogs/edit-customer-dialog/
   styleUrl: './customers-list.component.scss',
 })
 export class CustomersListComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   loading = signal(false);
   error = signal<string | null>(null);
   search = signal('');
@@ -60,9 +62,12 @@ export class CustomersListComponent implements OnInit {
       width: '420px',
       disableClose: false,
     });
-    ref.afterClosed().subscribe((result?: CustomerDto) => {
-      if (result) this.loadPage();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: CustomerDto) => {
+        if (result) this.loadPage();
+      });
   }
 
   openCustomerOrdersModal(customer: CustomerDto): void {
@@ -81,9 +86,12 @@ export class CustomersListComponent implements OnInit {
       disableClose: false,
       data: customer,
     });
-    ref.afterClosed().subscribe((result?: CustomerDto) => {
-      if (result) this.loadPage();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result?: CustomerDto) => {
+        if (result) this.loadPage();
+      });
   }
 
   ngOnInit(): void {
@@ -93,7 +101,10 @@ export class CustomersListComponent implements OnInit {
   loadPage(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.getCustomersPage(this.search() || null, this.page(), this.pageSize()).subscribe({
+    this.api
+      .getCustomersPage(this.search() || null, this.page(), this.pageSize())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (res) => {
         this.items.set(res.items);
         this.totalCount.set(res.totalCount);

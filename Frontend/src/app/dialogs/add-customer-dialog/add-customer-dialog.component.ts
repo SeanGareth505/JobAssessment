@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -34,6 +35,7 @@ import type { CustomerDto, CreateCustomerRequest } from '../../core/models/api.m
   styleUrl: './add-customer-dialog.component.scss',
 })
 export class AddCustomerDialogComponent {
+  private readonly destroyRef = inject(DestroyRef);
   loading = false;
   error: string | null = null;
   form: FormGroup;
@@ -69,15 +71,18 @@ export class AddCustomerDialogComponent {
 
     this.loading = true;
     this.error = null;
-    this.api.createCustomer(request).subscribe({
-      next: (customer) => {
-        this.loading = false;
-        this.dialogRef.close(customer);
-      },
-      error: (err) => {
-        this.error = getApiErrorMessage(err, 'Failed to create customer');
-        this.loading = false;
-      },
-    });
+    this.api
+      .createCustomer(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (customer) => {
+          this.loading = false;
+          this.dialogRef.close(customer);
+        },
+        error: (err) => {
+          this.error = getApiErrorMessage(err, 'Failed to create customer');
+          this.loading = false;
+        },
+      });
   }
 }
