@@ -1,0 +1,78 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.login-card mat-card-header {
+  padding: 2rem 2rem 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.login-card mat-card-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.login-card mat-card-content {
+  padding: 2rem;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.login-form button {
+  margin-top: 0.5rem;
+  min-height: 44px;
+  font-size: 0.9375rem;
+}
+.roles-help {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+}
+.roles-help ul {
+  margin: 0.35rem 0 0 1.25rem;
+  padding: 0;
+}
+.roles-help li {
+  margin-bottom: 0.35rem;
+}
+
+.test-accounts {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.7);
+}
+.test-accounts-title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+.test-accounts-password {
+  margin: 0 0 0.5rem;
+}
+.test-accounts ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.test-accounts li {
+  margin-bottom: 0.25rem;
+}

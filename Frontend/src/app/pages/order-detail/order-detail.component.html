@@ -1,0 +1,184 @@
+<div class="order-detail-page">
+  @if (loading()) {
+    <div class="loading-wrap">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p class="loading-text">Loading order…</p>
+    </div>
+  } @else if (order(); as o) {
+    <div class="detail-header">
+      <div class="detail-header-main">
+        <a mat-button routerLink="/orders" class="back-link">
+          <mat-icon>arrow_back</mat-icon>
+          Orders
+        </a>
+        <div class="order-title-row">
+          <h1 class="order-title">Order {{ o.id }}</h1>
+          <span class="status-badge" [class]="'status-' + o.status">{{
+            statusLabel(o.status)
+          }}</span>
+          @if (hasOrderActions) {
+            <button
+              mat-icon-button
+              [matMenuTriggerFor]="orderActionsMenu"
+              class="header-actions-btn"
+              aria-label="Order actions"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          }
+        </div>
+        <p class="order-meta">
+          {{ o.createdAt | date: 'mediumDate' }} at {{ o.createdAt | date: 'shortTime' }}
+        </p>
+      </div>
+      <mat-menu #orderActionsMenu="matMenu">
+        @if (hasStatusActions()) {
+          <button mat-menu-item [matMenuTriggerFor]="changeStatusMenu">
+            <mat-icon>swap_horiz</mat-icon>
+            <span>Change status</span>
+            <mat-icon class="submenu-icon">chevron_right</mat-icon>
+          </button>
+          <mat-menu #changeStatusMenu="matMenu">
+            @if (canTransitionToPaid()) {
+              <button mat-menu-item (click)="transitionTo(1)" [disabled]="updating()">
+                <mat-icon>payments</mat-icon>
+                <span>Mark Paid</span>
+              </button>
+            }
+            @if (canTransitionToFulfilled()) {
+              <button mat-menu-item (click)="transitionTo(2)" [disabled]="updating()">
+                <mat-icon>check_circle</mat-icon>
+                <span>Mark Fulfilled</span>
+              </button>
+            }
+            @if (canTransitionToCancelled()) {
+              <button mat-menu-item (click)="transitionTo(3)" [disabled]="updating()">
+                <mat-icon>cancel</mat-icon>
+                <span>Cancel order</span>
+              </button>
+            }
+          </mat-menu>
+        }
+        @if (canEditOrder()) {
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="openEditOrderModal()">
+            <mat-icon>edit</mat-icon>
+            <span>Edit order</span>
+          </button>
+        }
+      </mat-menu>
+    </div>
+
+    <div class="summary-cards">
+      <div class="summary-card">
+        <span class="summary-label">Customer</span>
+        <span class="summary-value">{{ o.customerName ?? o.customerId }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Total</span>
+        <span class="summary-value amount"
+          >{{ o.currencyCode }} {{ o.totalAmount | number: '1.2-2' }}</span
+        >
+      </div>
+    </div>
+
+    <section class="line-items-section">
+      <h2 class="section-heading">Line items</h2>
+      <div class="table-wrap">
+        <table mat-table [dataSource]="o.lineItems" class="data-table">
+          <ng-container matColumnDef="productSku">
+            <th mat-header-cell *matHeaderCellDef>Product</th>
+            <td mat-cell *matCellDef="let row">{{ row.productSku }}</td>
+          </ng-container>
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Qty</th>
+            <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+          </ng-container>
+          <ng-container matColumnDef="unitPrice">
+            <th mat-header-cell *matHeaderCellDef>Unit price</th>
+            <td mat-cell *matCellDef="let row">
+              {{ o.currencyCode }} {{ row.unitPrice | number: '1.2-2' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="lineTotal">
+            <th mat-header-cell *matHeaderCellDef>Line total</th>
+            <td mat-cell *matCellDef="let row">
+              {{ o.currencyCode }} {{ row.lineTotal | number: '1.2-2' }}
+            </td>
+          </ng-container>
+          <tr
+            mat-header-row
+            *matHeaderRowDef="['productSku', 'quantity', 'unitPrice', 'lineTotal']"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: ['productSku', 'quantity', 'unitPrice', 'lineTotal']"
+          ></tr>
+        </table>
+      </div>
+      <div class="order-total-row">
+        <span class="order-total-label">Order total</span>
+        <span class="order-total-value"
+          >{{ o.currencyCode }} {{ o.totalAmount | number: '1.2-2' }}</span
+        >
+      </div>
+    </section>
+
+    <div class="action-bar">
+      <a mat-button routerLink="/orders">Back to list</a>
+      <div class="action-bar-right">
+        @if (updating()) {
+          <mat-spinner diameter="28" class="inline-spinner"></mat-spinner>
+        }
+        @if (canEditOrder()) {
+          <button mat-raised-button color="accent" (click)="openEditOrderModal()">
+            Edit order
+          </button>
+        }
+        @if (hasOrderActions && auth.hasWriteRole()) {
+          @if (canTransitionToPaid()) {
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="transitionTo(1)"
+              [disabled]="updating()"
+            >
+              Mark Paid
+            </button>
+          }
+          @if (canTransitionToFulfilled()) {
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="transitionTo(2)"
+              [disabled]="updating()"
+            >
+              Mark Fulfilled
+            </button>
+          }
+          @if (canTransitionToCancelled()) {
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="transitionTo(3)"
+              [disabled]="updating()"
+            >
+              Cancel order
+            </button>
+          }
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="error-msg">{{ error() }}</p>
+    }
+  } @else {
+    <div class="not-found">
+      <mat-icon class="not-found-icon">receipt_long</mat-icon>
+      <h2>Order not found</h2>
+      <p>This order may have been removed or the link is incorrect.</p>
+      <a mat-raised-button color="primary" routerLink="/orders">Back to Orders</a>
+    </div>
+  }
+</div>

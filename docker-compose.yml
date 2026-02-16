@@ -1,0 +1,55 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong@Passw0rd"
+    ports:
+      - "1433:1433"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  api:
+    build:
+      context: .
+      dockerfile: Backend/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=BackendDb;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      RabbitMQ__HostName: "rabbitmq"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__UserName: "guest"
+      RabbitMQ__Password: "guest"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+  worker:
+    build:
+      context: .
+      dockerfile: Worker/Dockerfile
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=BackendDb;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      RabbitMQ__HostName: "rabbitmq"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__UserName: "guest"
+      RabbitMQ__Password: "guest"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+  web:
+    build:
+      context: .
+      dockerfile: Frontend/Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - api

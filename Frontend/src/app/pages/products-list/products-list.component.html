@@ -1,0 +1,95 @@
+<mat-card class="page-card">
+  <mat-card-header>
+    <mat-card-title>Item catalog</mat-card-title>
+    <mat-card-subtitle
+      >Products you can add to orders. Search, sort, and manage items.</mat-card-subtitle
+    >
+  </mat-card-header>
+  <mat-card-content>
+    <div class="toolbar-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          (keyup.enter)="onSearch()"
+          placeholder="SKU or name"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Sort by</mat-label>
+        <mat-select [ngModel]="sortOption()" (ngModelChange)="onSortChange($event)">
+          <mat-option value="sku-asc">SKU (A–Z)</mat-option>
+          <mat-option value="sku-desc">SKU (Z–A)</mat-option>
+          <mat-option value="created-desc">Newest first</mat-option>
+          <mat-option value="created-asc">Oldest first</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="toolbar-actions">
+        <button mat-button (click)="onSearch()">Search</button>
+        @if (auth.hasWriteRole()) {
+          <button mat-raised-button color="primary" (click)="openCreateProductModal()">
+            Add item
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="error-msg">{{ error() }}</p>
+    }
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="loading-label">Loading items…</p>
+      </div>
+    } @else if (isEmpty()) {
+      <div class="empty-state">
+        <div class="empty-state-icon" aria-hidden="true">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+        <h3 class="empty-state-title">No items yet</h3>
+        <p class="empty-state-text">
+          Add your first product to use in orders. You can add items from the catalog when creating
+          an order.
+        </p>
+        @if (auth.hasWriteRole()) {
+          <button mat-raised-button color="primary" (click)="openCreateProductModal()">
+            Add your first item
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="table-wrapper">
+        <table mat-table [dataSource]="items()" class="data-table mat-elevation-z0">
+          <ng-container matColumnDef="sku">
+            <th mat-header-cell *matHeaderCellDef>SKU</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="cell-sku">{{ row.sku }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let row">{{ row.name || '—' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Created</th>
+            <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'mediumDate' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        <mat-paginator
+          [length]="totalCount()"
+          [pageSize]="pageSize()"
+          [pageIndex]="page() - 1"
+          [pageSizeOptions]="[10, 20, 50, 100]"
+          (page)="onPage($event)"
+          showFirstLastButtons
+        >
+        </mat-paginator>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

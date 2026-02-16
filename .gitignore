@@ -1,0 +1,47 @@
+# OS and editors
+.DS_Store
+Thumbs.db
+*.user
+*.suo
+*.userosscache
+.idea/
+.vscode/
+*.sublime-*
+
+# Build and runtime
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Oo]ut/
+*.log
+*.cache
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+*.DotSettings.user
+
+# Frontend (keep in sync with Frontend/.gitignore for root-level runs)
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.angular/
+Frontend/tmp/
+Frontend/out-tsc/
+Frontend/coverage/
+Frontend/npm-debug.log*
+Frontend/yarn-error.log*
+
+# Secrets and env
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+secrets.json
+
+# Docker (optional)
+*.dockerignore.bak

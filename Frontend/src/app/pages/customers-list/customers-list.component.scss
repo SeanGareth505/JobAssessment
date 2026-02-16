@@ -1,0 +1,120 @@
+@use '../../../theme/variables' as v;
+
+.page-card {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.toolbar-row {
+  display: flex;
+  gap: v.$spacing-md;
+  align-items: flex-start;
+  margin-bottom: v.$spacing-xl;
+
+  mat-form-field {
+    flex: 1;
+    max-width: 420px;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    gap: v.$spacing-md;
+    align-items: center;
+    margin-left: auto;
+    padding-top: 4px;
+
+    button {
+      white-space: nowrap;
+    }
+  }
+}
+
+.table-wrapper {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  mat-table {
+    .mat-mdc-header-cell {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(0, 0, 0, 0.6);
+      padding: v.$spacing-lg v.$spacing-xl;
+      background: #fafafa;
+    }
+
+    .mat-mdc-cell {
+      padding: v.$spacing-lg v.$spacing-xl;
+      font-size: 0.9375rem;
+      color: rgba(0, 0, 0, 0.87);
+    }
+
+    .order-count-btn {
+      min-width: auto;
+      padding: 0 0.25rem;
+      font-weight: 600;
+    }
+
+    .mat-mdc-row {
+      transition: background-color 0.15s ease;
+      cursor: default;
+
+      &:hover {
+        background-color: rgba(63, 81, 181, 0.04);
+      }
+    }
+  }
+
+  .empty-state-row {
+    td {
+      padding: 4rem v.$spacing-xl;
+      text-align: center;
+      color: rgba(0, 0, 0, 0.38);
+      font-size: 0.9375rem;
+    }
+  }
+}
+
+.error-msg {
+  padding: v.$spacing-md v.$spacing-lg;
+  background: #ffebee;
+  border-left: 4px solid #c62828;
+  border-radius: 6px;
+  margin-bottom: v.$spacing-xl;
+}
+
+mat-spinner {
+  margin: v.$spacing-3xl auto;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: v.$spacing-md;
+
+    mat-form-field {
+      max-width: 100%;
+    }
+
+    .toolbar-actions {
+      margin-left: 0;
+      padding-top: 0;
+      justify-content: stretch;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+
+  .table-wrapper {
+    mat-table {
+      .mat-mdc-header-cell,
+      .mat-mdc-cell {
+        padding: v.$spacing-md v.$spacing-lg;
+      }
+    }
+  }
+}

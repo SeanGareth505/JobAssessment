@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>Add Product</h2>
+<mat-dialog-content>
+  <p class="dialog-subtitle">
+    Create a new product (item) by SKU. You can use it in orders right away.
+  </p>
+  <form [formGroup]="form" (ngSubmit)="create()" id="create-product-dialog-form">
+    <div class="form-section">
+      <mat-form-field appearance="outline">
+        <mat-label>SKU</mat-label>
+        <input matInput formControlName="sku" placeholder="e.g. WIDGET-001" />
+        @if (form.get('sku')?.invalid && form.get('sku')?.touched) {
+          <mat-error>
+            @if (form.get('sku')?.errors?.['required']) {
+              SKU is required
+            } @else if (form.get('sku')?.errors?.['minlength']) {
+              SKU must be at least 1 character
+            } @else if (form.get('sku')?.errors?.['maxlength']) {
+              SKU must be at most 200 characters
+            }
+          </mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" placeholder="Display name" />
+        @if (form.get('name')?.invalid && form.get('name')?.touched) {
+          <mat-error>
+            @if (form.get('name')?.errors?.['required']) {
+              Name is required
+            } @else if (form.get('name')?.errors?.['minlength']) {
+              Name must be at least 1 character
+            } @else if (form.get('name')?.errors?.['maxlength']) {
+              Name must be at most 200 characters
+            }
+          </mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </form>
+  @if (error) {
+    <p class="error-msg">{{ error }}</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" [disabled]="loading || form.invalid" (click)="create()">
+    Create Product
+  </button>
+  @if (loading) {
+    <mat-spinner diameter="24" class="loading-inline"></mat-spinner>
+  }
+</mat-dialog-actions>

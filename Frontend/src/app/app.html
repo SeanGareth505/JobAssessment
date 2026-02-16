@@ -1,0 +1,45 @@
+<mat-toolbar class="app-toolbar" color="primary">
+  <div class="app-brand">
+    <span class="app-brand-icon" aria-hidden="true">OM</span>
+    <span class="app-brand-text">Order Management</span>
+  </div>
+  <span class="spacer"></span>
+  @if (auth.isAuthenticated()) {
+    <nav class="app-nav" aria-label="Main navigation">
+      <a
+        mat-button
+        routerLink="/customers"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        >Customers</a
+      >
+      <a
+        mat-button
+        routerLink="/orders"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        >Orders</a
+      >
+      <a
+        mat-button
+        routerLink="/products"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        >Products</a
+      >
+    </nav>
+    <div class="app-user-section">
+      <span class="app-user-avatar" [attr.aria-label]="auth.currentUser()?.name ?? 'User'">{{
+        (auth.currentUser()?.name ?? 'U').charAt(0).toUpperCase()
+      }}</span>
+      <span class="app-user-name">{{ auth.currentUser()?.name ?? 'User' }}</span>
+      <button mat-button class="app-logout" (click)="auth.logout()">Sign out</button>
+    </div>
+  } @else {
+    <a mat-button routerLink="/login" class="app-login">Sign in</a>
+  }
+</mat-toolbar>
+
+<main class="content">
+  <router-outlet />
+</main>

@@ -1,0 +1,23 @@
+# Ignore when building any service (context is repo root)
+.git
+.gitignore
+*.md
+.env
+.env.*
+.DS_Store
+*.log
+**/*.user
+**/*.suo
+
+# Frontend – avoid sending node_modules and build artifacts
+Frontend/node_modules
+Frontend/dist
+Frontend/.angular
+
+# Backend – avoid sending build outputs
+Backend/bin
+Backend/obj
+
+# Worker – avoid sending build outputs
+Worker/bin
+Worker/obj

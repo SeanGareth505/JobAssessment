@@ -1,0 +1,244 @@
+@use '../../../theme/variables' as v;
+
+.order-detail-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: v.$spacing-xl;
+}
+
+.loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  gap: v.$spacing-lg;
+
+  .loading-text {
+    margin: 0;
+    color: v.$text-muted;
+    font-size: 0.9375rem;
+  }
+}
+
+.detail-header {
+  margin-bottom: v.$spacing-2xl;
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: v.$spacing-md;
+    color: v.$text-muted;
+    text-decoration: none;
+
+    mat-icon {
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  .order-title-row {
+    display: flex;
+    align-items: center;
+    gap: v.$spacing-md;
+    flex-wrap: wrap;
+  }
+
+  .order-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    &.status-0 {
+      background: rgba(255, 152, 0, 0.14);
+      color: #e65100;
+    }
+
+    &.status-1 {
+      background: rgba(33, 150, 243, 0.14);
+      color: #1565c0;
+    }
+
+    &.status-2 {
+      background: rgba(76, 175, 80, 0.14);
+      color: #2e7d32;
+    }
+
+    &.status-3 {
+      background: rgba(244, 67, 54, 0.12);
+      color: #c62828;
+    }
+  }
+
+  .header-actions-btn {
+    margin-left: auto;
+  }
+
+  .order-meta {
+    margin: v.$spacing-xs 0 0;
+    font-size: 0.9375rem;
+    color: v.$text-muted;
+  }
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: v.$spacing-md;
+  margin-bottom: v.$spacing-2xl;
+}
+
+.summary-card {
+  background: v.$surface-subtle;
+  border-radius: v.$card-radius;
+  padding: v.$spacing-lg;
+  border: 1px solid v.$border-color;
+
+  .summary-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: v.$text-muted;
+    margin-bottom: 0.25rem;
+  }
+
+  .summary-value {
+    font-size: 1rem;
+    font-weight: 500;
+
+    &.amount {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.line-items-section {
+  margin-bottom: v.$spacing-2xl;
+}
+
+.section-heading {
+  margin: 0 0 v.$spacing-md;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.table-wrap {
+  border-radius: v.$table-radius;
+  border: 1px solid v.$border-color;
+  overflow: hidden;
+  background: v.$surface-elevated;
+  box-shadow: v.$shadow-card;
+}
+
+.data-table {
+  width: 100%;
+
+  .mat-mdc-header-cell {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: v.$text-muted;
+    padding: v.$spacing-md v.$spacing-lg;
+    background: v.$surface-subtle;
+  }
+
+  .mat-mdc-cell {
+    padding: v.$spacing-md v.$spacing-lg;
+    font-size: 0.9375rem;
+  }
+
+  .mat-mdc-row:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.order-total-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: v.$spacing-lg;
+  padding: v.$spacing-md v.$spacing-lg;
+  background: v.$surface-subtle;
+  border-top: 1px solid v.$border-color;
+  font-weight: 600;
+  font-size: 1rem;
+
+  .order-total-label {
+    color: v.$text-muted;
+  }
+}
+
+.action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: v.$spacing-md;
+  padding-top: v.$spacing-lg;
+  border-top: 1px solid v.$border-color;
+
+  .action-bar-right {
+    display: flex;
+    align-items: center;
+    gap: v.$spacing-md;
+    margin-left: auto;
+  }
+
+  .inline-spinner {
+    margin-right: 0.25rem;
+  }
+}
+
+.error-msg {
+  margin: v.$spacing-md 0 0;
+  padding: v.$spacing-md v.$spacing-lg;
+  background: #ffebee;
+  border-left: 4px solid #c62828;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+}
+
+.not-found {
+  text-align: center;
+  padding: v.$spacing-3xl v.$spacing-xl;
+
+  .not-found-icon {
+    font-size: 4rem;
+    width: 4rem;
+    height: 4rem;
+    color: v.$text-muted;
+    margin-bottom: v.$spacing-md;
+  }
+
+  h2 {
+    margin: 0 0 v.$spacing-sm;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 v.$spacing-lg;
+    color: v.$text-muted;
+    font-size: 0.9375rem;
+  }
+}
+
+.submenu-icon {
+  margin-left: auto;
+}

@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>Add Customer</h2>
+
+<mat-dialog-content>
+  <p class="dialog-subtitle">SADC country and details</p>
+
+  <form [formGroup]="form" (ngSubmit)="create()" id="add-customer-dialog-form">
+    <div class="form-section">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" placeholder="Customer name" />
+        @if (form.get('name')?.invalid && form.get('name')?.touched) {
+          <mat-error>
+            @if (form.get('name')?.errors?.['required']) {
+              Name is required
+            } @else if (form.get('name')?.errors?.['minlength']) {
+              Name must be at least 1 character
+            } @else if (form.get('name')?.errors?.['maxlength']) {
+              Name must be at most 200 characters
+            }
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" placeholder="email@example.com" />
+        @if (form.get('email')?.invalid && form.get('email')?.touched && form.get('email')?.value) {
+          <mat-error>
+            @if (form.get('email')?.errors?.['email']) {
+              Enter a valid email address
+            } @else if (form.get('email')?.errors?.['maxlength']) {
+              Email must be at most 256 characters
+            }
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Country</mat-label>
+        <mat-select formControlName="countryCode">
+          @for (c of countries; track c.code) {
+            <mat-option [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+          }
+        </mat-select>
+        @if (form.get('countryCode')?.invalid && form.get('countryCode')?.touched) {
+          <mat-error>Country is required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </form>
+
+  @if (error) {
+    <p class="error-msg">{{ error }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" [disabled]="loading || form.invalid" (click)="create()">
+    Create Customer
+  </button>
+  @if (loading) {
+    <mat-spinner diameter="24" class="loading-inline"></mat-spinner>
+  }
+</mat-dialog-actions>

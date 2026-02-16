@@ -1,0 +1,119 @@
+<h2 mat-dialog-title>New Order</h2>
+<mat-dialog-content>
+  <p class="dialog-subtitle">
+    Select customer and currency (SADC). Add one or more product lines; all fields are required. If
+    the product is not in the list, create a new one to add a line.
+  </p>
+  <form [formGroup]="form" (ngSubmit)="createOrder()" id="create-order-dialog-form">
+    <div class="form-section">
+      <mat-form-field appearance="outline">
+        <mat-label>Customer</mat-label>
+        <mat-select formControlName="customerId">
+          <mat-option value="">-- Select --</mat-option>
+          @for (c of customers; track c.id) {
+            <mat-option [value]="c.id">{{ c.name }} ({{ c.countryCode }})</mat-option>
+          }
+        </mat-select>
+        @if (form.get('customerId')?.invalid && form.get('customerId')?.touched) {
+          <mat-error>Customer is required</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Currency</mat-label>
+        <mat-select formControlName="currencyCode">
+          @for (cur of allowedCurrencies; track cur) {
+            <mat-option [value]="cur">{{ cur }}</mat-option>
+          }
+        </mat-select>
+        @if (form.get('currencyCode')?.invalid && form.get('currencyCode')?.touched) {
+          <mat-error>Currency is required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="line-items-section">
+      <h3 class="section-title">Product lines</h3>
+      <p class="line-items-intro">
+        Each row needs a product, quantity, and unit price. Add a line or create a new product to
+        add a line with that product.
+      </p>
+      <div formArrayName="lineItems">
+        @for (item of lineItems.controls; track $index; let i = $index) {
+          <div [formGroupName]="i" class="line-row">
+            <mat-form-field appearance="outline" class="line-product-field">
+              <mat-label>Product</mat-label>
+              <mat-select formControlName="productId">
+                <mat-option value="">— Select product —</mat-option>
+                @for (p of catalogProducts; track p.id) {
+                  <mat-option [value]="p.id"
+                    >{{ p.sku }}{{ p.name ? ' · ' + p.name : '' }}</mat-option
+                  >
+                }
+              </mat-select>
+              @if (
+                lineItems.at(i).get('productId')?.invalid &&
+                lineItems.at(i).get('productId')?.touched
+              ) {
+                <mat-error>Product is required</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="line-qty-field">
+              <mat-label>Qty</mat-label>
+              <input matInput type="number" formControlName="quantity" min="1" />
+              @if (
+                lineItems.at(i).get('quantity')?.invalid && lineItems.at(i).get('quantity')?.touched
+              ) {
+                <mat-error>Required, min 1</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="line-price-field">
+              <mat-label>Unit price</mat-label>
+              <input matInput type="number" formControlName="unitPrice" min="0" step="0.01" />
+              @if (
+                lineItems.at(i).get('unitPrice')?.invalid &&
+                lineItems.at(i).get('unitPrice')?.touched
+              ) {
+                <mat-error>Required, ≥ 0</mat-error>
+              }
+            </mat-form-field>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removeLine(i)"
+              [disabled]="lineItems.length <= 1"
+              color="warn"
+              aria-label="Remove line"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+      <div class="line-actions">
+        <button mat-button type="button" (click)="addLine()">Add line</button>
+        <span class="line-actions-sep">or</span>
+        <button mat-button type="button" (click)="openCreateProductModal()">
+          Create new product
+        </button>
+      </div>
+    </div>
+  </form>
+
+  @if (error) {
+    <p class="error-msg">{{ error }}</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="loading || form.invalid || !lineItems.length"
+    (click)="createOrder()"
+  >
+    Create Order
+  </button>
+  @if (loading) {
+    <mat-spinner diameter="24" class="loading-inline"></mat-spinner>
+  }
+</mat-dialog-actions>

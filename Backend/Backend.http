@@ -1,0 +1,82 @@
+@Backend_HostAddress = http://localhost:5018
+@CustomerId = {{create_customer_response.id}}
+@OrderId = {{create_order_response.id}}
+@AccessToken = 
+@ProductId1 = 
+@ProductId2 = 
+
+### Login
+# @name login
+POST {{Backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "userName": "admin",
+  "password": "123qwe"
+}
+
+### Create customer
+# @name create_customer
+POST {{Backend_HostAddress}}/api/customers
+Content-Type: application/json
+Authorization: Bearer {{AccessToken}}
+
+{
+  "name": "Acme Corp",
+  "email": "acme@example.com",
+  "countryCode": "ZA"
+}
+
+### Get customers (paginated)
+GET {{Backend_HostAddress}}/api/customers?page=1&pageSize=20
+Accept: application/json
+Authorization: Bearer {{AccessToken}}
+
+### Get customer by id
+GET {{Backend_HostAddress}}/api/customers/{{CustomerId}}
+Accept: application/json
+Authorization: Bearer {{AccessToken}}
+
+### Get products
+GET {{Backend_HostAddress}}/api/products?page=1&pageSize=100
+Accept: application/json
+Authorization: Bearer {{AccessToken}}
+
+### Create order
+# @name create_order
+POST {{Backend_HostAddress}}/api/orders
+Content-Type: application/json
+Authorization: Bearer {{AccessToken}}
+
+{
+  "customerId": "{{CustomerId}}",
+  "currencyCode": "ZAR",
+  "lineItems": [
+    { "productId": "{{ProductId1}}", "quantity": 2, "unitPrice": 99.50 },
+    { "productId": "{{ProductId2}}", "quantity": 1, "unitPrice": 199.00 }
+  ]
+}
+
+### Get orders (paginated, optional filters)
+GET {{Backend_HostAddress}}/api/orders?page=1&pageSize=20&sort=createdAt
+Accept: application/json
+Authorization: Bearer {{AccessToken}}
+
+### Get order by id
+GET {{Backend_HostAddress}}/api/orders/{{OrderId}}
+Accept: application/json
+Authorization: Bearer {{AccessToken}}
+
+### Update order status
+PUT {{Backend_HostAddress}}/api/orders/{{OrderId}}/status
+Content-Type: application/json
+Authorization: Bearer {{AccessToken}}
+Idempotency-Key: {{$guid}}
+
+{
+  "status": 1
+}
+
+### Health
+GET {{Backend_HostAddress}}/healthz
+GET {{Backend_HostAddress}}/readiness

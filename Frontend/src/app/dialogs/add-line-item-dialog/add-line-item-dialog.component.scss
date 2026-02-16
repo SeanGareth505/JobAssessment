@@ -1,0 +1,17 @@
+.hint {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0.5rem 0;
+}
+
+.form-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  min-width: 320px;
+  padding-top: 0.25rem;
+}
+
+.form-section mat-form-field {
+  min-width: 140px;
+}

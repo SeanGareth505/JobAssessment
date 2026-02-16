@@ -1,0 +1,33 @@
+.dialog-subtitle {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 1rem;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 480px;
+}
+
+.section-title {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.line-items-intro {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 0.5rem;
+}
+
+.line-row {
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.line-row mat-form-field {
+  flex: 1;
+  min-width: 100px;
+}

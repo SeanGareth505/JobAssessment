@@ -1,0 +1,118 @@
+<mat-card class="page-card">
+  <mat-card-header>
+    <mat-card-title>Create Order</mat-card-title>
+    <mat-card-subtitle>Select customer and currency (SADC); add line items</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="createOrder()">
+      <div class="form-section">
+        <mat-form-field appearance="outline">
+          <mat-label>Customer</mat-label>
+          <mat-select formControlName="customerId">
+            <mat-option value="">-- Select --</mat-option>
+            @for (c of customers; track c.id) {
+              <mat-option [value]="c.id">{{ c.name }} ({{ c.countryCode }})</mat-option>
+            }
+          </mat-select>
+          @if (form.get('customerId')?.invalid && form.get('customerId')?.touched) {
+            <mat-error>Customer is required</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Currency</mat-label>
+          <mat-select formControlName="currencyCode">
+            @for (cur of allowedCurrencies; track cur) {
+              <mat-option [value]="cur">{{ cur }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('currencyCode')?.invalid && form.get('currencyCode')?.touched) {
+            <mat-error>Currency is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <h3 class="section-title">Product lines</h3>
+      <p class="line-items-intro">
+        Each order line is a product from the catalog. Add lines by selecting an existing product or
+        creating a new one.
+      </p>
+      <div formArrayName="lineItems">
+        @for (item of lineItems.controls; track $index; let i = $index) {
+          <div [formGroupName]="i" class="toolbar-row line-row">
+            @let lineProduct = getProductForLine(lineItems.at(i).get('productId')?.value);
+            <span class="line-product"
+              >{{ lineProduct?.sku }}{{ lineProduct?.name ? ' · ' + lineProduct?.name : '' }}</span
+            >
+            <mat-form-field appearance="outline">
+              <mat-label>Qty</mat-label>
+              <input matInput type="number" formControlName="quantity" min="1" />
+              @if (
+                lineItems.at(i).get('quantity')?.invalid && lineItems.at(i).get('quantity')?.touched
+              ) {
+                <mat-error>Quantity must be at least 1</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Unit price</mat-label>
+              <input matInput type="number" formControlName="unitPrice" min="0" step="0.01" />
+              @if (
+                lineItems.at(i).get('unitPrice')?.invalid &&
+                lineItems.at(i).get('unitPrice')?.touched
+              ) {
+                <mat-error>Unit price must be 0 or greater</mat-error>
+              }
+            </mat-form-field>
+            <button
+              mat-button
+              type="button"
+              (click)="removeLine(i)"
+              color="warn"
+              [disabled]="lineItems.length <= 1"
+            >
+              Remove
+            </button>
+          </div>
+        }
+      </div>
+      <div class="line-actions">
+        @if (catalogProducts.length > 0) {
+          <mat-form-field appearance="outline" class="catalog-select">
+            <mat-label>Add product from catalog</mat-label>
+            <mat-select
+              [(ngModel)]="selectedCatalogProductId"
+              [ngModelOptions]="{ standalone: true }"
+              (selectionChange)="onCatalogProductSelected($event.value)"
+            >
+              <mat-option value="">— Select product —</mat-option>
+              @for (p of catalogProducts; track p.id) {
+                <mat-option [value]="p.id"
+                  >{{ p.sku }}{{ p.name ? ' · ' + p.name : '' }}</mat-option
+                >
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        <button mat-button type="button" (click)="openCreateProductModal()">
+          Create new product
+        </button>
+      </div>
+      <div class="action-row">
+        <a mat-button routerLink="/orders">Back to Orders</a>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="loading || form.invalid || lineItems.length === 0"
+        >
+          Create Order
+        </button>
+      </div>
+    </form>
+    @if (loading) {
+      <mat-spinner diameter="24" class="loading-inline"></mat-spinner>
+    }
+    @if (error) {
+      <p class="error-msg">{{ error }}</p>
+    }
+  </mat-card-content>
+</mat-card>
